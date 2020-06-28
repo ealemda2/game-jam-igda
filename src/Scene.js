@@ -42,15 +42,13 @@ class Scene extends React.Component {
         width: window.innerWidth,
         height: window.innerHeight,
         wireframes: false,
-        background: "#E4F5FC",
-        showShadows: true,
-        showDebug: true,
-        showPositions: true,
+        background: "#E4F5FC"
       },
     });
 
     const ballA = Bodies.circle(210, 100, 30, { restitution: 0.5 });
     const ballB = Bodies.circle(110, 50, 30, { restitution: 0.5 });
+    const rectC = Bodies.rectangle(110, 50, 30, 50, { restitution: 0.5 });
 
     const wallColor = "#FCFAA4";
     World.add(engine.world, [
@@ -107,7 +105,7 @@ class Scene extends React.Component {
     // Composite object that holds all head parts
     const fullHead = Body.create({ parts: [head, nose, rightEye, leftEye, rightIris, leftIris, rightPupil, leftPupil], isStatic: true })
 
-    World.add(engine.world, [ballA, ballB, fullHead]);
+    World.add(engine.world, [ballA, ballB, rectC]);
 
     // add mouse control
     const mouse = Mouse.create(render.canvas),
@@ -157,15 +155,48 @@ class Scene extends React.Component {
       }
     });
 
-    World.add(engine.world, [scaleButton, transformButton, rotateButton]);
+    let baseHatButton1 = Bodies.circle(window.innerWidth / 4, 300, 130, {
+      isStatic: true, isSensor: true, render: {
+        opacity: 1,
+        sprite: {
+          texture: "../images/hatPreset1.png",
+          xScale: 1,
+          yScale: 1
+        }
+      }
+    });
+
+    let baseHatButton2 = Bodies.circle(window.innerWidth / 2, 300, 130, {
+      isStatic: true, isSensor: true, render: {
+        opacity: 1,
+        sprite: {
+          texture: "../images/hatPreset2.png",
+          xScale: 1,
+          yScale: 1
+        }
+      }
+    });
+
+    let baseHatButton3 = Bodies.circle(window.innerWidth * 3 / 4, 300, 130, {
+      isStatic: true, isSensor: true, render: {
+        opacity: 1,
+        sprite: {
+          texture: "../images/hatPreset3.png",
+          xScale: 1,
+          yScale: 1
+        }
+      }
+    });
+
+    World.add(engine.world, [scaleButton, transformButton, rotateButton, baseHatButton1, baseHatButton2, baseHatButton3]);
     Matter.Events.on(mouseConstraint, "mousedown", function (event) {
       //const rand = Math.random();
-      let initialPosition = mouse.position;
+
       console.log(toolState.mousePressed);
       if (!toolState.mousePressed) {
-        setToolState("mouseStartPosition", initialPosition)
-        console.log('mousedown event')
-        console.log(toolState.mouseStartPosition);
+        setToolState("mouseStartPosition", mouse.mousedownPosition);
+        //console.log('mousedown event');
+        //console.log(toolState.mouseStartPosition);
         toolState.mouseDisplacement = 0;
       }
 
@@ -176,8 +207,7 @@ class Scene extends React.Component {
 
       toolState.selectedBody = mouseConstraint.body;
       toolState.mousePressed = true;
-
-
+      let baseHat;
 
       // for buttons
       switch (toolState.selectedBody) {
@@ -202,10 +232,58 @@ class Scene extends React.Component {
           strokeColor = buttonStrokeColors.scale;
           break;
 
+        case baseHatButton1:
+          baseHat = Bodies.rectangle(window.innerWidth / 2, 200, 400, 80, {
+            isStatic: true,
+            render: { fillStyle: "#E3FF78" }
+          });
+          World.add(engine.world, [fullHead, baseHat]);
+          World.remove(engine.world, [baseHatButton1, baseHatButton2, baseHatButton3]);
+          break;
+
+        case baseHatButton2:
+          const hatBody = Bodies.rectangle(window.innerWidth / 2, 200, 100, 100, {
+            isStatic: true
+          });
+          const hatTop = Bodies.rectangle(window.innerWidth / 2, 150, 300, 20, {
+            isStatic: true
+          });
+          baseHat = Body.create({ parts: [hatBody, hatTop], isStatic: true });
+          World.add(engine.world, [fullHead, baseHat]);
+          World.remove(engine.world, [baseHatButton1, baseHatButton2, baseHatButton3]);
+          break;
+
+        case baseHatButton3:
+          const hatBottom = Bodies.rectangle(window.innerWidth / 2, 200, 400, 50, {
+            isStatic: true,
+            chamfer: { radius: [10, 10, 30, 30] }
+          });
+          const hatRightSide = Bodies.rectangle((window.innerWidth / 2) - 200, 170, 50, 100, {
+            isStatic: true,
+            angle: -Math.PI / 4,
+            chamfer: { radius: [30, 30, 10, 10] }
+          });
+          const hatLeftSide = Bodies.rectangle((window.innerWidth / 2) + 200, 170, 50, 100, {
+            isStatic: true,
+            angle: Math.PI / 4,
+            chamfer: { radius: [30, 30, 10, 10] }
+          });
+          const hatMiddle = Bodies.trapezoid(window.innerWidth / 2, 150, 150, 100, 0.5, {
+            isStatic: true
+            //chamfer: { radius: [10, 30, 10, 30] }
+          });
+          baseHat = Body.create({ parts: [hatBottom, hatRightSide, hatLeftSide, hatMiddle], isStatic: true });
+          World.add(engine.world, [fullHead, baseHat]);
+          World.remove(engine.world, [baseHatButton1, baseHatButton2, baseHatButton3]);
+          break;
+
         default:
           if (toolState.selectedBody && toolState.selectedBody.isStatic !== true) {
             toolState.selectedBody.render.lineWidth = 10.0;
             toolState.selectedBody.render.strokeStyle = strokeColor;
+            if (toolState.currentTool === "rotate") {
+              Body.rotate(toolState.selectedBody, Math.PI / 2);
+            }
           }
           break;
       }
@@ -237,24 +315,29 @@ class Scene extends React.Component {
     });
 
     Matter.Events.on(mouseConstraint, "mousemove", function (event) {
-      toolState.mouseCurrentPosition = event.mouse.position;
+      toolState.mouseCurrentPosition = mouse.position;
 
       if (toolState.mousePressed === true && mouseConstraint.body) {
-        toolState.mouseDisplacement = vectorLength({ x: toolState.mouseCurrentPosition.x - toolState.mouseStartPosition.x, y: toolState.mouseCurrentPosition.y - toolState.mouseStartPosition.y });
+        toolState.mouseDisplacement = { x: toolState.mouseCurrentPosition.x - toolState.mouseStartPosition.x, y: toolState.mouseCurrentPosition.y - toolState.mouseStartPosition.y };
         switch (toolState.currentTool) {
           case "translate":
             // just use default constraint for translate
             break;
           case "scale":
 
-            if (mouseConstraint.body.isSensor === false || mouseConstraint.body.isStatic === false) {
-              console.log('mousemove event');
-              console.log('mousemove start pos', getToolState().mouseStartPosition);
-              Body.scale(mouseConstraint.body, 1, 1); // scale factor
+            if (mouseConstraint.body.isSensor === false && mouseConstraint.body.isStatic === false) {
+              //console.log('mousemove event');
+              let XscaleFactor = Math.sign(toolState.mouseDisplacement.x) * vectorLength(toolState.mouseDisplacement) / 10000;
+              let YscaleFactor = Math.sign(toolState.mouseDisplacement.y) * vectorLength(toolState.mouseDisplacement) / 10000;
+
+              Body.scale(mouseConstraint.body, 1 + XscaleFactor, 1 - YscaleFactor); // scale factor
             }
             break;
           case "rotate":
             // TODO make object rotate
+            if (mouseConstraint.body.isSensor === false && mouseConstraint.body.isStatic === false) {
+              let rotateFactor = Math.sign(toolState.mouseDisplacement.x) * vectorLength(toolState.mouseDisplacement) / 100;
+            }
             break;
           default:
             break;

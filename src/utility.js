@@ -32,7 +32,7 @@ export const dot = (u, v) => {
 }
 
 export const vectorLength = (u) => {
-    return Math.sqrt(dot(u, u));
+    return Math.sqrt(u.x * u.x + u.y * u.y);
 }
 
 
