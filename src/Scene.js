@@ -19,7 +19,11 @@ class Scene extends React.Component {
       Bodies = Matter.Bodies,
       Body = Matter.Body,
       Mouse = Matter.Mouse,
-      MouseConstraint = Matter.MouseConstraint;
+      MouseConstraint = Matter.MouseConstraint,
+      Runner = Matter.Runner,
+      Events = Matter.Events,
+      Bounds = Matter.Bounds,
+      Vector = Matter.Vector;
     //Common = Matter.Common;
 
     let screenSize = { x: window.innerWidth, y: window.innerHeight };
@@ -43,9 +47,82 @@ class Scene extends React.Component {
       options: {
         width: window.innerWidth,
         height: window.innerHeight,
+        hasBounds: true,
         wireframes: false,
         background: "#E4F5FC",
       },
+    });
+
+    // create runner (viewport)
+    const runner = Runner.create();
+    Runner.run(runner, engine);
+
+    const viewportCentre = {
+      x: render.options.width * 0.5,
+      y: render.options.height * 0.5
+    };
+
+    // make the world bounds a little bigger than the render bounds
+    engine.world.bounds.min.y = -1000;
+    engine.world.bounds.max.y = window.innerHeight;
+
+    // keep track of current bounds scale (view zoom)
+    let boundsScaleTarget = 1;
+    const boundsScale = {
+      x: 1,
+      y: 1
+    };
+
+    Events.on(engine, 'beforeTick', function () {
+
+      let mouse = mouseConstraint.mouse;
+      let world = engine.world;
+      let translate;
+
+      // mouse wheel controls zoom
+      let scaleFactor = mouse.wheelDelta * -0.1;
+      if (scaleFactor !== 0) {
+        if ((scaleFactor < 0 && boundsScale.x >= 0.6) || (scaleFactor > 0 && boundsScale.x <= 1.4)) {
+          boundsScaleTarget += scaleFactor;
+        }
+        // create a vector to translate the view, allowing the user to control view speed
+        let direction = Vector.create(0, 1);
+        let speed = scaleFactor * 70;
+
+        translate = Vector.mult(direction, speed);
+
+        // prevent the view moving outside the world bounds
+        if (render.bounds.min.x + translate.x < world.bounds.min.x)
+          translate.x = world.bounds.min.x - render.bounds.min.x;
+
+        if (render.bounds.max.x + translate.x > world.bounds.max.x)
+          translate.x = world.bounds.max.x - render.bounds.max.x;
+
+        if (render.bounds.min.y + translate.y < world.bounds.min.y)
+          translate.y = world.bounds.min.y - render.bounds.min.y;
+
+        if (render.bounds.max.y + translate.y > world.bounds.max.y)
+          translate.y = world.bounds.max.y - render.bounds.max.y;
+
+        // move the view
+        Bounds.translate(render.bounds, translate);
+
+        // Move buttons
+        const upVector = Vector.create(0, translate.y);
+        Matter.Body.setPosition(transformButton, Vector.add(transformButton.position, upVector));
+        Matter.Body.setPosition(rotateButton, Vector.add(rotateButton.position, upVector));
+        Matter.Body.setPosition(scaleButton, Vector.add(scaleButton.position, upVector));
+        Matter.Body.setPosition(createCircleButton, Vector.add(createCircleButton.position, upVector));
+        Matter.Body.setPosition(createRectangleButton, Vector.add(createRectangleButton.position, upVector));
+        Matter.Body.setPosition(createTriangleButton, Vector.add(createTriangleButton.position, upVector));
+
+        // we must update the mouse too
+        Mouse.setOffset(mouse, render.bounds.min);
+      }
+
+
+
+
     });
 
     const ballA = Bodies.circle(210, 100, 30, { restitution: 0.5 });
@@ -90,11 +167,11 @@ class Scene extends React.Component {
         isStatic: true,
         render: { fillStyle: wallColor },
       }), //bottom wall
-      Bodies.rectangle(screenSize.x, screenSize.y / 2.0, 50, screenSize.y, {
+      Bodies.rectangle(screenSize.x, screenSize.y / 2.0, 50, 2000, {
         isStatic: true,
         render: { fillStyle: wallColor },
       }), //right wall
-      Bodies.rectangle(0, screenSize.y / 2.0, 50, screenSize.y, {
+      Bodies.rectangle(0, screenSize.y / 2.0, 50, 2000, {
         isStatic: true,
         render: { fillStyle: wallColor },
       }), //left wall
@@ -226,11 +303,11 @@ class Scene extends React.Component {
       rotate: "#0000FF",
     };
     let strokeColor = buttonStrokeColors.transform;
-    let transformButton = Bodies.circle(50, 50, 20, {
+    const transformButton = Bodies.circle(50, 50, 20, {
       isStatic: true,
       isSensor: true,
       render: {
-        opacity: 1,
+        opacity: 0.4,
         sprite: {
           texture: "../images/transform.png",
           xScale: 1,
@@ -238,7 +315,7 @@ class Scene extends React.Component {
         },
       },
     });
-    let rotateButton = Bodies.circle(50, 100, 20, {
+    const rotateButton = Bodies.circle(50, 100, 20, {
       isStatic: true,
       isSensor: true,
       render: {
@@ -250,7 +327,7 @@ class Scene extends React.Component {
         },
       },
     });
-    let scaleButton = Bodies.circle(50, 150, 20, {
+    const scaleButton = Bodies.circle(50, 150, 20, {
       isStatic: true,
       isSensor: true,
       render: {
@@ -263,7 +340,7 @@ class Scene extends React.Component {
       },
     });
 
-    let baseHatButton1 = Bodies.circle(window.innerWidth / 4, 300, 130, {
+    const baseHatButton1 = Bodies.circle(window.innerWidth / 4, 300, 130, {
       isStatic: true,
       isSensor: true,
       render: {
@@ -276,7 +353,7 @@ class Scene extends React.Component {
       },
     });
 
-    let baseHatButton2 = Bodies.circle(window.innerWidth / 2, 300, 130, {
+    const baseHatButton2 = Bodies.circle(window.innerWidth / 2, 300, 130, {
       isStatic: true,
       isSensor: true,
       render: {
@@ -289,13 +366,51 @@ class Scene extends React.Component {
       },
     });
 
-    let baseHatButton3 = Bodies.circle((window.innerWidth * 3) / 4, 300, 130, {
+    const baseHatButton3 = Bodies.circle((window.innerWidth * 3) / 4, 300, 130, {
       isStatic: true,
       isSensor: true,
       render: {
         opacity: 1,
         sprite: {
           texture: "../images/hatPreset3.png",
+          xScale: 1,
+          yScale: 1,
+        },
+      },
+    });
+
+    const createCircleButton = Bodies.circle(50, 200, 20, {
+      isStatic: true,
+      isSensor: true,
+      render: {
+        opacity: 1,
+        sprite: {
+          texture: "../images/circle.png",
+          xScale: 1,
+          yScale: 1,
+        },
+      },
+    });
+
+    const createRectangleButton = Bodies.circle(50, 250, 20, {
+      isStatic: true,
+      isSensor: true,
+      render: {
+        opacity: 1,
+        sprite: {
+          texture: "../images/rectangle.png",
+          xScale: 1,
+          yScale: 1,
+        },
+      },
+    });
+    const createTriangleButton = Bodies.circle(50, 300, 20, {
+      isStatic: true,
+      isSensor: true,
+      render: {
+        opacity: 1,
+        sprite: {
+          texture: "../images/triangle.png",
           xScale: 1,
           yScale: 1,
         },
@@ -316,6 +431,9 @@ class Scene extends React.Component {
       baseHatButton1,
       baseHatButton2,
       baseHatButton3,
+      createCircleButton,
+      createRectangleButton,
+      createTriangleButton
     ]);
     Matter.Events.on(mouseConstraint, "mousedown", function (event) {
       //const rand = Math.random();
@@ -323,8 +441,6 @@ class Scene extends React.Component {
       console.log(toolState.mousePressed);
       if (!toolState.mousePressed) {
         setToolState("mouseStartPosition", mouse.mousedownPosition);
-        //console.log('mousedown event');
-        //console.log(toolState.mouseStartPosition);
         toolState.mouseDisplacement = 0;
       }
 
@@ -343,21 +459,21 @@ class Scene extends React.Component {
       switch (toolState.selectedBody) {
         case transformButton:
           console.log("transform pressed at: " + event.mouse.position);
-          selectDeselectButton(transformButton, [scaleButton, rotateButton]);
+          selectDeselectButton(transformButton, [scaleButton, rotateButton, createCircleButton, createRectangleButton, createTriangleButton]);
           toolState.currentTool = "transform";
           strokeColor = buttonStrokeColors.transform;
           break;
 
         case rotateButton:
           console.log("rotate pressed at: " + event.mouse.position);
-          selectDeselectButton(rotateButton, [transformButton, scaleButton]);
+          selectDeselectButton(rotateButton, [transformButton, scaleButton, createCircleButton, createRectangleButton, createTriangleButton]);
           toolState.currentTool = "rotate";
           strokeColor = buttonStrokeColors.rotate;
           break;
 
         case scaleButton:
           console.log("scale pressed at: " + event.mouse.position);
-          selectDeselectButton(scaleButton, [transformButton, rotateButton]);
+          selectDeselectButton(scaleButton, [transformButton, rotateButton, createCircleButton, createRectangleButton, createTriangleButton]);
           toolState.currentTool = "scale";
           strokeColor = buttonStrokeColors.scale;
           break;
@@ -460,6 +576,25 @@ class Scene extends React.Component {
           ]);
           break;
 
+        case createCircleButton:
+          selectDeselectButton(createCircleButton, [scaleButton, rotateButton, transformButton, createRectangleButton, createTriangleButton]);
+          toolState.currentTool = "createCircle";
+          strokeColor = buttonStrokeColors.transform;
+          break;
+
+        case createRectangleButton:
+          selectDeselectButton(createRectangleButton, [scaleButton, rotateButton, createCircleButton, transformButton, createTriangleButton]);
+          toolState.currentTool = "createRectangle";
+          strokeColor = buttonStrokeColors.transform;
+          break;
+
+        case createTriangleButton:
+          selectDeselectButton(createTriangleButton, [scaleButton, rotateButton, createCircleButton, createRectangleButton, transformButton]);
+          toolState.currentTool = "createTriangle";
+          strokeColor = buttonStrokeColors.transform;
+          break;
+
+        // for moveable non static objects
         default:
           if (
             toolState.selectedBody &&
@@ -467,8 +602,31 @@ class Scene extends React.Component {
           ) {
             toolState.selectedBody.render.lineWidth = 10.0;
             toolState.selectedBody.render.strokeStyle = strokeColor;
+
+            // code for rotate
             if (toolState.currentTool === "rotate") {
               Body.rotate(toolState.selectedBody, Math.PI / 2);
+            }
+          }
+
+          if (mouseConstraint.body === null) {
+            if (toolState.currentTool === "createCircle") {
+              World.add(
+                engine.world,
+                Bodies.circle(mouse.position.x, mouse.position.y, getRandomInt(10, 60), { restitution: 0.5 })
+              );
+            }
+            else if (toolState.currentTool === "createRectangle") {
+              World.add(
+                engine.world,
+                Bodies.rectangle(mouse.position.x, mouse.position.y, getRandomInt(40, 100), getRandomInt(40, 100), { restitution: 0.5 })
+              );
+            }
+            else if (toolState.currentTool === "createTriangle") {
+              World.add(
+                engine.world,
+                Bodies.polygon(mouse.position.x, mouse.position.y, 3, getRandomInt(20, 80), { restitution: 0.5 })
+              );
             }
           }
           break;
