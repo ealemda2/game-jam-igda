@@ -1,5 +1,5 @@
 import React from "react";
-import Matter, { Mouse } from "matter-js";
+import Matter, { Mouse, Constraint } from "matter-js";
 import { getRandomInt } from "./utility";
 import { selectDeselectButton } from "./utility";
 import { vectorLength } from "./utility";
@@ -573,18 +573,33 @@ class Scene extends React.Component {
           const hatTop = Bodies.rectangle(
             fullHead.position.x,
             fullHead.position.y - 200,
-            300,
+            400,
             20,
             {
               isStatic: true,
               render: { fillStyle: hatColors[hatColorSelector] },
             }
           );
+
+          const danglingBall = Bodies.circle(hatTop.position.x - 300, hatTop.position.y + 50, 30, { render: { fillStyle: "#000000" } });
+          const danglingChain = Constraint.create({
+            bodyA: danglingBall,
+            pointA: { x: 10, y: 0 },
+            bodyB: hatTop,
+            pointB: { x: -170, y: 0 },
+            stiffness: 0.6,
+            damping: 0.5
+          });
+
+
           baseHat = Body.create({ parts: [hatBody, hatTop], isStatic: true });
+
           setReactState("hatChosen", true);
           World.add(engine.world, [
             fullHead,
             baseHat,
+            danglingBall,
+            danglingChain,
             trashCan,
             trashCanBoundaryLeft,
             trashCanBoundaryRight,
@@ -710,7 +725,7 @@ class Scene extends React.Component {
 
             // code for rotate
             if (toolState.currentTool === "rotate") {
-              Body.rotate(toolState.selectedBody, Math.PI / 2);
+              Body.rotate(toolState.selectedBody, Math.PI / 2, [toolState.selectedBody.position]);
             }
           }
 
@@ -780,13 +795,11 @@ class Scene extends React.Component {
     });
 
     Matter.Events.on(mouseConstraint, "mousemove", function (event) {
-      toolState.mouseCurrentPosition = mouse.position;
+      //let mouse = mouseConstraint.mouse;
+      toolState.mouseCurrentPosition = Vector.create(mouse.position.x, mouse.position.y);
 
       if (toolState.mousePressed === true && mouseConstraint.body) {
-        toolState.mouseDisplacement = {
-          x: toolState.mouseCurrentPosition.x - toolState.mouseStartPosition.x,
-          y: toolState.mouseCurrentPosition.y - toolState.mouseStartPosition.y,
-        };
+
         switch (toolState.currentTool) {
           case "translate":
             // just use default constraint for translate
@@ -796,19 +809,23 @@ class Scene extends React.Component {
               mouseConstraint.body.isSensor === false &&
               mouseConstraint.body.isStatic === false
             ) {
-              let XscaleFactor =
-                (Math.sign(toolState.mouseDisplacement.x) *
-                  vectorLength(toolState.mouseDisplacement)) /
-                10000;
-              let YscaleFactor =
-                (Math.sign(toolState.mouseDisplacement.y) *
-                  vectorLength(toolState.mouseDisplacement)) /
-                10000;
+
+              toolState.mouseDisplacement = Vector.create(
+                toolState.mouseCurrentPosition.x - mouse.mousedownPosition.x,
+                toolState.mouseCurrentPosition.y - mouse.mousedownPosition.y
+              );
+
+
+              let scaleFactor = Vector.magnitude(toolState.mouseDisplacement) / 3000;
+              let scaleDirection = Vector.normalise(toolState.mouseDisplacement);
+
+              console.log(scaleFactor);
+              console.log(scaleDirection);
 
               Body.scale(
                 mouseConstraint.body,
-                1 + XscaleFactor,
-                1 - YscaleFactor
+                1 + (scaleDirection.x * scaleFactor),
+                1 - (scaleDirection.y * scaleFactor)
               ); // scale factor
             }
             break;
@@ -830,7 +847,7 @@ class Scene extends React.Component {
       }
     });
 
-    Matter.Events.on(mouseConstraint, "startdrag", function (event) {});
+    Matter.Events.on(mouseConstraint, "startdrag", function (event) { });
 
     Engine.run(engine);
     Render.run(render);
