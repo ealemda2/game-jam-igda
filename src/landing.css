@@ -1,0 +1,9 @@
+#landing-nav {
+  position: absolute;
+  top: calc(50vh - 100px);
+  left: calc(50vw - 150px);
+}
+
+.ant-row {
+  margin: 5px 5px 5px 5px;
+}
