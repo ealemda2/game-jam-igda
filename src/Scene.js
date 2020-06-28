@@ -5,6 +5,8 @@ import { selectDeselectButton } from "./utility";
 import { vectorLength } from "./utility";
 import { SoundOutlined } from "@ant-design/icons";
 import { scryRenderedDOMComponentsWithTag } from "react-dom/test-utils";
+import { Button } from "antd";
+import "antd/dist/antd.css";
 
 class Scene extends React.Component {
   constructor(props) {
@@ -12,7 +14,11 @@ class Scene extends React.Component {
     this.state = {
       render: null,
       hatChosen: false,
-      audioPlaying: true,
+      audioPlaying: false,
+      score: 0,
+      engine: null,
+      screenSize: null,
+      donePlaying: false,
     };
   }
 
@@ -29,8 +35,8 @@ class Scene extends React.Component {
       Bounds = Matter.Bounds,
       Vector = Matter.Vector;
     //Common = Matter.Common;
-
     let screenSize = { x: window.innerWidth, y: window.innerHeight };
+    this.setState({ screenSize });
     const toolState = {};
     const setToolState = (key, value) => {
       if (!Object.keys(toolState).includes(key)) {
@@ -48,10 +54,10 @@ class Scene extends React.Component {
     const engine = Engine.create({
       // positionIterations: 20
     });
-
     const render = Render.create({
       element: this.refs.scene,
       engine: engine,
+      mouse: MouseConstraint.mouse,
       options: {
         width: window.innerWidth,
         height: window.innerHeight,
@@ -60,7 +66,7 @@ class Scene extends React.Component {
         background: "#E4F5FC",
       },
     });
-
+    this.setState({ engine });
     // create runner (viewport)
     const runner = Runner.create();
     Runner.run(runner, engine);
@@ -85,7 +91,6 @@ class Scene extends React.Component {
       let mouse = mouseConstraint.mouse;
       let world = engine.world;
       let translate;
-
       // mouse wheel controls zoom
       let scaleFactor = mouse.wheelDelta * -0.1;
       if (scaleFactor !== 0) {
@@ -97,7 +102,7 @@ class Scene extends React.Component {
         }
         // create a vector to translate the view, allowing the user to control view speed
         let direction = Vector.create(0, 1);
-        let speed = scaleFactor * 70;
+        let speed = scaleFactor * 90;
 
         translate = Vector.mult(direction, speed);
 
@@ -147,6 +152,10 @@ class Scene extends React.Component {
         // we must update the mouse too
         Mouse.setOffset(mouse, render.bounds.min);
       }
+    });
+
+    Events.on(engine, "afterTick", function () {
+      const currentScore = getReactState().score;
     });
 
     const ballA = Bodies.circle(210, 100, 30, { restitution: 0.5 });
@@ -477,7 +486,6 @@ class Scene extends React.Component {
       if (toolState.selectedBody) {
         toolState.selectedBody.render.lineWidth = 0;
       }
-
       toolState.selectedBody = mouseConstraint.body;
       toolState.mousePressed = true;
       let baseHat;
@@ -581,16 +589,20 @@ class Scene extends React.Component {
             }
           );
 
-          const danglingBall = Bodies.circle(hatTop.position.x - 300, hatTop.position.y + 50, 30, { render: { fillStyle: "#000000" } });
+          const danglingBall = Bodies.circle(
+            hatTop.position.x - 300,
+            hatTop.position.y + 50,
+            30,
+            { render: { fillStyle: "#000000" } }
+          );
           const danglingChain = Constraint.create({
             bodyA: danglingBall,
             pointA: { x: 10, y: 0 },
             bodyB: hatTop,
             pointB: { x: -170, y: 0 },
             stiffness: 0.6,
-            damping: 0.5
+            damping: 0.5,
           });
-
 
           baseHat = Body.create({ parts: [hatBody, hatTop], isStatic: true });
 
@@ -725,7 +737,9 @@ class Scene extends React.Component {
 
             // code for rotate
             if (toolState.currentTool === "rotate") {
-              Body.rotate(toolState.selectedBody, Math.PI / 2, [toolState.selectedBody.position]);
+              Body.rotate(toolState.selectedBody, Math.PI / 2, [
+                toolState.selectedBody.position,
+              ]);
             }
           }
 
@@ -766,22 +780,6 @@ class Scene extends React.Component {
           }
           break;
       }
-
-      // if (Math.random() >= 0.5) {
-      //   World.add(
-      //     engine.world,
-      //     Bodies.circle(mouse.position.x, mouse.position.y, 30, {
-      //       restitution: 0.7,
-      //     })
-      //   );
-      // } else {
-      //   World.add(
-      //     engine.world,
-      //     Bodies.rectangle(mouse.position.x, mouse.position.y, 30, 15, {
-      //       restitution: 0.7,
-      //     })
-      //   );
-      // }
     });
 
     Matter.Events.on(mouseConstraint, "mouseup", function (event) {
@@ -796,10 +794,12 @@ class Scene extends React.Component {
 
     Matter.Events.on(mouseConstraint, "mousemove", function (event) {
       //let mouse = mouseConstraint.mouse;
-      toolState.mouseCurrentPosition = Vector.create(mouse.position.x, mouse.position.y);
+      toolState.mouseCurrentPosition = Vector.create(
+        mouse.position.x,
+        mouse.position.y
+      );
 
       if (toolState.mousePressed === true && mouseConstraint.body) {
-
         switch (toolState.currentTool) {
           case "translate":
             // just use default constraint for translate
@@ -809,23 +809,24 @@ class Scene extends React.Component {
               mouseConstraint.body.isSensor === false &&
               mouseConstraint.body.isStatic === false
             ) {
-
               toolState.mouseDisplacement = Vector.create(
                 toolState.mouseCurrentPosition.x - mouse.mousedownPosition.x,
                 toolState.mouseCurrentPosition.y - mouse.mousedownPosition.y
               );
 
-
-              let scaleFactor = Vector.magnitude(toolState.mouseDisplacement) / 3000;
-              let scaleDirection = Vector.normalise(toolState.mouseDisplacement);
+              let scaleFactor =
+                Vector.magnitude(toolState.mouseDisplacement) / 3000;
+              let scaleDirection = Vector.normalise(
+                toolState.mouseDisplacement
+              );
 
               console.log(scaleFactor);
               console.log(scaleDirection);
 
               Body.scale(
                 mouseConstraint.body,
-                1 + (scaleDirection.x * scaleFactor),
-                1 - (scaleDirection.y * scaleFactor)
+                1 + scaleDirection.x * scaleFactor,
+                1 - scaleDirection.y * scaleFactor
               ); // scale factor
             }
             break;
@@ -847,17 +848,20 @@ class Scene extends React.Component {
       }
     });
 
-    Matter.Events.on(mouseConstraint, "startdrag", function (event) { });
+    Matter.Events.on(mouseConstraint, "startdrag", function (event) {});
 
     Engine.run(engine);
     Render.run(render);
   }
 
   render() {
+    const { donePlaying } = this.state;
     return (
       <div style={{ diplay: "flex" }}>
         {this.renderChooseText()}
+        {this.renderDoneButton()}
         {this.renderAudioButton()}
+        {donePlaying ? this.renderScore() : null}
         <div ref="scene" />
       </div>
     );
@@ -881,6 +885,76 @@ class Scene extends React.Component {
     ) : null;
   };
 
+  renderDoneButton = () => {
+    const { engine } = this.state;
+    const styles = {
+      display: "flex",
+      position: "absolute",
+      top: "4vh",
+      fontSize: "16pt",
+      left: "85vw",
+      height: "50px",
+      alignItems: "center",
+      backgroundColor: "#2fb51d",
+      margin: "5px 5px 5px 5px",
+      fontFamily: "Bungee Inline",
+    };
+    return (
+      <Button
+        style={styles}
+        type="primary"
+        onClick={() => this.handleDoneClick(engine)}
+      >
+        I'm Done!
+      </Button>
+    );
+  };
+
+  handleDoneClick = (engine) => {
+    const { screenSize } = this.state;
+    console.log("Done: ");
+    const headPeak = screenSize.y / 2 - 140;
+    const point1 = { x: 250, y: -1100 };
+    const point2 = { x: 250, y: headPeak };
+    const point3 = { x: screenSize.x - 250, y: -1100 };
+    const point4 = { x: screenSize.x - 250, y: headPeak };
+    const scoreBounds = Matter.Bounds.create([point1, point2, point3, point4]);
+    console.log("scoreBounds", scoreBounds);
+    const overlaps = engine.world.bodies.filter((body) =>
+      Matter.Bounds.overlaps(scoreBounds, body.bounds)
+    );
+    console.log(
+      "overlaps",
+      overlaps,
+      engine.world.bodies.length - overlaps.length
+    );
+
+    let maxHeight = 0;
+    overlaps.map((body) => {
+      if (body.position.y < maxHeight) {
+        maxHeight = body.position.y;
+      }
+    });
+
+    const score = Math.abs(headPeak - maxHeight);
+    console.log("Score:", score);
+    this.setState({ score: score, donePlaying: true });
+  };
+
+  renderScore = () => {
+    const { score } = this.state;
+    const modifiedScore = score.toFixed(1);
+    const styles = {
+      display: "flex",
+      position: "absolute",
+      fontSize: "30pt",
+      top: "5vh",
+      left: "38vw",
+      fontFamily: "Bungee Inline",
+    };
+    return <h2 style={styles}>You Scored: {modifiedScore}</h2>;
+  };
+
   renderAudioButton = () => {
     const { audioPlaying } = this.state;
     if (audioPlaying) {
@@ -898,7 +972,7 @@ class Scene extends React.Component {
       position: "absolute",
       fontSize: "30pt",
       top: "5vh",
-      left: "90vw",
+      left: "95vw",
     };
     return (
       <div
