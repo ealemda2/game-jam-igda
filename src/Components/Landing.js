@@ -1,16 +1,76 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
+import { UpCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
+import { Button, Row } from "antd";
+
+import "../landing.css";
+import "antd/dist/antd.css";
 
 class Landing extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      isOpen: props.location.pathname === "/landing",
+    };
   }
 
   render() {
-    return <div class="menu" onClick={() => this.onClickOpen()}></div>;
+    return this.renderLandingNav();
   }
 
-  renderMenuItems = () => {};
+  renderLandingNav = () => {
+    const buttonStyle = { width: "200px", height: "100px", fontSize: "16pt" };
+    return (
+      <div id="landing-nav">
+        <nav>
+          <ul>
+            <Row>
+              <Button style={buttonStyle} type="primary">
+                <Link to="/game">Play Hat Trick!</Link>
+              </Button>
+            </Row>
+            <Row>
+              <Button style={buttonStyle} type="secondary">
+                <Link to="/about">About</Link>
+              </Button>
+            </Row>
+          </ul>
+        </nav>
+      </div>
+    );
+  };
+
+  renderGameNav = () => {
+    const { isOpen } = this.props;
+    if (isOpen) {
+      return (
+        <div id="game-nav">
+          <nav>
+            <ul>
+              <li>
+                <Link to="/game">Game</Link>
+              </li>
+              <li>
+                <Link to="/about">About</Link>
+              </li>
+            </ul>
+            {this.renderHamburger()}
+          </nav>
+        </div>
+      );
+    }
+    return this.renderHamburger();
+  };
+
+  renderHamburger = () => {
+    const { isOpen } = this.props;
+
+    return isOpen ? (
+      <UpCircleOutlined onClick={this.onClickOpen} />
+    ) : (
+      <DownCircleOutlined onClick={this.onClickOpen} />
+    );
+  };
 
   onClickOpen = (prevState) => {
     this.setState({ isOpen: !prevState.isOpen });

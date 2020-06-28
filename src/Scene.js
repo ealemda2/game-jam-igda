@@ -219,23 +219,6 @@ class Scene extends React.Component {
       if (selectedBody && selectedBody.isStatic !== true) {
         selectedBody.render.lineWidth = 10.0;
       }
-
-      if (Math.random() >= 0.5) {
-        World.add(
-          engine.world,
-          Bodies.circle(mouse.position.x, mouse.position.y, 30, {
-            restitution: 0.7,
-          })
-        );
-      } else {
-        World.add(
-          engine.world,
-          Bodies.rectangle(mouse.position.x, mouse.position.y, 30, 15, {
-            restitution: 0.7,
-          })
-        );
-      }
-
       // Trash can collision handling
       Matter.Events.on(engine, "collisionEnd", ({ pairs }) => {
         pairs.forEach(({ bodyA, bodyB }) => {
@@ -258,7 +241,29 @@ class Scene extends React.Component {
   }
 
   render() {
-    return <div ref="scene" />;
+    return (
+      <div style={{ diplay: "flex" }}>
+        {this.renderChooseText()}
+        <div ref="scene" />
+      </div>
+    );
   }
+
+  renderChooseText = () => {
+    return (
+      <h1
+        style={{
+          display: "flex",
+          position: "absolute",
+          fontSize: "40pt",
+          top: "25vh",
+          left: "32vw",
+          fontFamily: "Bungee Inline",
+        }}
+      >
+        CHOOSE STARTING HAT
+      </h1>
+    );
+  };
 }
 export default Scene;
