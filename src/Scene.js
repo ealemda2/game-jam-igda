@@ -50,6 +50,7 @@ class Scene extends React.Component {
 
     const ballA = Bodies.circle(210, 100, 30, { restitution: 0.5 });
     const ballB = Bodies.circle(110, 50, 30, { restitution: 0.5 });
+    const rectC = Bodies.rectangle(110, 50, 60, 100, { restitution: 0.5 });
     const trashCan = Bodies.rectangle(
       screenSize.x * 0.8,
       screenSize.y - 35,
@@ -80,7 +81,7 @@ class Scene extends React.Component {
         render: { fillStyle: "#010101" },
       }
     );
-    const rectC = Bodies.rectangle(110, 50, 30, 50, { restitution: 0.5 });
+
 
     const wallColor = "#FCFAA4";
     World.add(engine.world, [
@@ -335,6 +336,8 @@ class Scene extends React.Component {
       toolState.selectedBody = mouseConstraint.body;
       toolState.mousePressed = true;
       let baseHat;
+      const hatColors = ["#4036E0", "#F26B9B", "#DBAB67", "#96E0C9", "#58E0B5", "#8F94F2", "#DB88B9", "#FFD09E", "#000000"]
+      let hatColorSelector = getRandomInt(0, hatColors.length);
 
       // for buttons
       switch (toolState.selectedBody) {
@@ -360,9 +363,10 @@ class Scene extends React.Component {
           break;
 
         case baseHatButton1:
-          baseHat = Bodies.rectangle(window.innerWidth / 2, 200, 400, 80, {
+          baseHat = Bodies.rectangle(fullHead.position.x, fullHead.position.y - 120, 400, 40, {
             isStatic: true,
-            render: { fillStyle: "#E3FF78" },
+            render: { fillStyle: hatColors[hatColorSelector] },
+            chamfer: { radius: [0, 0, 30, 30] }
           });
           World.add(engine.world, [fullHead, baseHat]);
           World.remove(engine.world, [
@@ -374,16 +378,18 @@ class Scene extends React.Component {
 
         case baseHatButton2:
           const hatBody = Bodies.rectangle(
-            window.innerWidth / 2,
-            200,
+            fullHead.position.x,
+            fullHead.position.y - 140,
             100,
             100,
             {
               isStatic: true,
+              render: { fillStyle: hatColors[hatColorSelector] }
             }
           );
-          const hatTop = Bodies.rectangle(window.innerWidth / 2, 150, 300, 20, {
+          const hatTop = Bodies.rectangle(fullHead.position.x, fullHead.position.y - 200, 300, 20, {
             isStatic: true,
+            render: { fillStyle: hatColors[hatColorSelector] }
           });
           baseHat = Body.create({ parts: [hatBody, hatTop], isStatic: true });
           World.add(engine.world, [fullHead, baseHat]);
@@ -396,45 +402,49 @@ class Scene extends React.Component {
 
         case baseHatButton3:
           const hatBottom = Bodies.rectangle(
-            window.innerWidth / 2,
-            200,
+            fullHead.position.x,
+            fullHead.position.y - 130,
             400,
             50,
             {
               isStatic: true,
               chamfer: { radius: [10, 10, 30, 30] },
+              render: { fillStyle: hatColors[hatColorSelector] }
             }
           );
           const hatRightSide = Bodies.rectangle(
-            window.innerWidth / 2 - 200,
-            170,
-            50,
-            100,
-            {
-              isStatic: true,
-              angle: -Math.PI / 4,
-              chamfer: { radius: [30, 30, 10, 10] },
-            }
-          );
-          const hatLeftSide = Bodies.rectangle(
-            window.innerWidth / 2 + 200,
-            170,
+            fullHead.position.x + 190,
+            fullHead.position.y - 150,
             50,
             100,
             {
               isStatic: true,
               angle: Math.PI / 4,
-              chamfer: { radius: [30, 30, 10, 10] },
+              chamfer: { radius: [30, 30, 30, 10] },
+              render: { fillStyle: hatColors[hatColorSelector] }
+            }
+          );
+          const hatLeftSide = Bodies.rectangle(
+            fullHead.position.x - 190,
+            fullHead.position.y - 150,
+            50,
+            100,
+            {
+              isStatic: true,
+              angle: -Math.PI / 4,
+              chamfer: { radius: [30, 30, 30, 30] },
+              render: { fillStyle: hatColors[hatColorSelector] }
             }
           );
           const hatMiddle = Bodies.trapezoid(
-            window.innerWidth / 2,
+            fullHead.position.x,
+            fullHead.position.y - 160,
             150,
-            150,
-            100,
+            120,
             0.5,
             {
               isStatic: true,
+              render: { fillStyle: hatColors[hatColorSelector] }
               //chamfer: { radius: [10, 30, 10, 30] }
             }
           );
@@ -541,7 +551,7 @@ class Scene extends React.Component {
       }
     });
 
-    Matter.Events.on(mouseConstraint, "startdrag", function (event) {});
+    Matter.Events.on(mouseConstraint, "startdrag", function (event) { });
 
     Engine.run(engine);
     Render.run(render);
