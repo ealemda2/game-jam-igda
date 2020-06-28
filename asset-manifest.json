@@ -1,25 +1,25 @@
 {
   "files": {
-    "main.css": "/ealemda2/ealemda2.github.io.git/public/index.html/static/css/main.f12969e9.chunk.css",
-    "main.js": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/main.93d959b6.chunk.js",
-    "main.js.map": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/main.93d959b6.chunk.js.map",
-    "runtime-main.js": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/runtime-main.46c2a75b.js",
-    "runtime-main.js.map": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/runtime-main.46c2a75b.js.map",
-    "static/css/2.3cb76441.chunk.css": "/ealemda2/ealemda2.github.io.git/public/index.html/static/css/2.3cb76441.chunk.css",
-    "static/js/2.a5154f4b.chunk.js": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/2.a5154f4b.chunk.js",
-    "static/js/2.a5154f4b.chunk.js.map": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/2.a5154f4b.chunk.js.map",
-    "index.html": "/ealemda2/ealemda2.github.io.git/public/index.html/index.html",
-    "precache-manifest.7624382d9a76135a468526164ea1201a.js": "/ealemda2/ealemda2.github.io.git/public/index.html/precache-manifest.7624382d9a76135a468526164ea1201a.js",
-    "service-worker.js": "/ealemda2/ealemda2.github.io.git/public/index.html/service-worker.js",
-    "static/css/2.3cb76441.chunk.css.map": "/ealemda2/ealemda2.github.io.git/public/index.html/static/css/2.3cb76441.chunk.css.map",
-    "static/css/main.f12969e9.chunk.css.map": "/ealemda2/ealemda2.github.io.git/public/index.html/static/css/main.f12969e9.chunk.css.map",
-    "static/js/2.a5154f4b.chunk.js.LICENSE.txt": "/ealemda2/ealemda2.github.io.git/public/index.html/static/js/2.a5154f4b.chunk.js.LICENSE.txt"
+    "main.css": "/ealemda2/ealemda2.github.io.git/static/css/main.f12969e9.chunk.css",
+    "main.js": "/ealemda2/ealemda2.github.io.git/static/js/main.c24ecda9.chunk.js",
+    "main.js.map": "/ealemda2/ealemda2.github.io.git/static/js/main.c24ecda9.chunk.js.map",
+    "runtime-main.js": "/ealemda2/ealemda2.github.io.git/static/js/runtime-main.abd9cd6b.js",
+    "runtime-main.js.map": "/ealemda2/ealemda2.github.io.git/static/js/runtime-main.abd9cd6b.js.map",
+    "static/css/2.3cb76441.chunk.css": "/ealemda2/ealemda2.github.io.git/static/css/2.3cb76441.chunk.css",
+    "static/js/2.a5154f4b.chunk.js": "/ealemda2/ealemda2.github.io.git/static/js/2.a5154f4b.chunk.js",
+    "static/js/2.a5154f4b.chunk.js.map": "/ealemda2/ealemda2.github.io.git/static/js/2.a5154f4b.chunk.js.map",
+    "index.html": "/ealemda2/ealemda2.github.io.git/index.html",
+    "precache-manifest.f8bd4dcd1f260c7823be88f82aef6a96.js": "/ealemda2/ealemda2.github.io.git/precache-manifest.f8bd4dcd1f260c7823be88f82aef6a96.js",
+    "service-worker.js": "/ealemda2/ealemda2.github.io.git/service-worker.js",
+    "static/css/2.3cb76441.chunk.css.map": "/ealemda2/ealemda2.github.io.git/static/css/2.3cb76441.chunk.css.map",
+    "static/css/main.f12969e9.chunk.css.map": "/ealemda2/ealemda2.github.io.git/static/css/main.f12969e9.chunk.css.map",
+    "static/js/2.a5154f4b.chunk.js.LICENSE.txt": "/ealemda2/ealemda2.github.io.git/static/js/2.a5154f4b.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.46c2a75b.js",
+    "static/js/runtime-main.abd9cd6b.js",
     "static/css/2.3cb76441.chunk.css",
     "static/js/2.a5154f4b.chunk.js",
     "static/css/main.f12969e9.chunk.css",
-    "static/js/main.93d959b6.chunk.js"
+    "static/js/main.c24ecda9.chunk.js"
   ]
 }
