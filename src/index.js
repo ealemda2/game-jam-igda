@@ -1,25 +1,3 @@
-// import React from "react";
-// import ReactDOM from "react-dom";
-// import "./index.css";
-// import Scene from "./Scene";
-// import * as serviceWorker from "./serviceWorker";
-
-// const App = () => (
-//   <div>
-//     <Scene />
-//   </div>
-// );
-
-// ReactDOM.render(
-//     <App />,
-//   document.getElementById("root")
-// );
-
-// // If you want your app to work offline and load faster, you can change
-// // unregister() to register() below. Note this comes with some pitfalls.
-// // Learn more about service workers: https://bit.ly/CRA-PWA
-// serviceWorker.unregister();
-
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
@@ -54,7 +32,19 @@ export class App extends Component {
 }
 
 function About() {
-  return <h1>About</h1>;
+  const styles = {
+    display: "flex",
+    position: "absolute",
+    fontSize: "30pt",
+    top: "10vh",
+    left: "35vw",
+    fontFamily: "Bungee Inline",
+  };
+  return (
+    <a href="https://calemdar.github.io/" style={styles}>
+      Made by Cem & Ert - 2020
+    </a>
+  );
 }
 
 ReactDOM.render(<App />, document.getElementById("root"));

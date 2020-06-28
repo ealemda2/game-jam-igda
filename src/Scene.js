@@ -820,9 +820,6 @@ class Scene extends React.Component {
                 toolState.mouseDisplacement
               );
 
-              console.log(scaleFactor);
-              console.log(scaleDirection);
-
               Body.scale(
                 mouseConstraint.body,
                 1 + scaleDirection.x * scaleFactor,
@@ -912,21 +909,14 @@ class Scene extends React.Component {
 
   handleDoneClick = (engine) => {
     const { screenSize } = this.state;
-    console.log("Done: ");
     const headPeak = screenSize.y / 2 - 140;
     const point1 = { x: 250, y: -1100 };
     const point2 = { x: 250, y: headPeak };
     const point3 = { x: screenSize.x - 250, y: -1100 };
     const point4 = { x: screenSize.x - 250, y: headPeak };
     const scoreBounds = Matter.Bounds.create([point1, point2, point3, point4]);
-    console.log("scoreBounds", scoreBounds);
     const overlaps = engine.world.bodies.filter((body) =>
       Matter.Bounds.overlaps(scoreBounds, body.bounds)
-    );
-    console.log(
-      "overlaps",
-      overlaps,
-      engine.world.bodies.length - overlaps.length
     );
 
     let maxHeight = 0;
