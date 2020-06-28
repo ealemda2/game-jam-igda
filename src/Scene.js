@@ -3,12 +3,16 @@ import Matter, { Mouse } from "matter-js";
 import { getRandomInt } from "./utility";
 import { selectDeselectButton } from "./utility";
 import { vectorLength } from "./utility";
+import { SoundOutlined } from "@ant-design/icons";
+import { scryRenderedDOMComponentsWithTag } from "react-dom/test-utils";
 
 class Scene extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       render: null,
+      hatChosen: false,
+      audioPlaying: true,
     };
   }
 
@@ -33,6 +37,10 @@ class Scene extends React.Component {
     };
 
     const getToolState = () => toolState;
+    const setReactState = (key, value) => {
+      this.setState({ [key]: value });
+    };
+    const getReactState = () => this.state;
     const engine = Engine.create({
       // positionIterations: 20
     });
@@ -54,35 +62,41 @@ class Scene extends React.Component {
       screenSize.x * 0.8,
       screenSize.y - 35,
       270,
-      20,
+      25,
       {
         isStatic: true,
-        render: { fillStyle: "#ee0000" },
+        render: { fillStyle: "#020202" },
+        chamfer: { radius: [0, 0, 10, 10] },
       }
     );
     const trashCanBoundaryLeft = Bodies.rectangle(
-      screenSize.x * 0.8 - 135,
-      screenSize.y - 100,
-      10,
-      150,
+      screenSize.x * 0.8 - 145,
+      screenSize.y - 130,
+      20,
+      200,
       {
         isStatic: true,
         render: { fillStyle: "#010101" },
+        angle: -0.2,
+        chamfer: { radius: [10, 10, 0, 0] },
       }
     );
     const trashCanBoundaryRight = Bodies.rectangle(
-      screenSize.x * 0.8 + 135,
-      screenSize.y - 100,
-      10,
-      150,
+      screenSize.x * 0.8 + 145,
+      screenSize.y - 130,
+      20,
+      200,
       {
         isStatic: true,
         render: { fillStyle: "#010101" },
+        angle: 0.2,
+        chamfer: { radius: [10, 10, 0, 0] },
       }
     );
     const rectC = Bodies.rectangle(110, 50, 30, 50, { restitution: 0.5 });
 
     const wallColor = "#FCFAA4";
+
     World.add(engine.world, [
       // walls
       Bodies.rectangle(screenSize.x / 2, screenSize.y, screenSize.x, 50, {
@@ -97,9 +111,6 @@ class Scene extends React.Component {
         isStatic: true,
         render: { fillStyle: wallColor },
       }), //left wall
-      trashCan,
-      trashCanBoundaryLeft,
-      trashCanBoundaryRight,
     ]);
 
     // Head constructi
@@ -166,7 +177,6 @@ class Scene extends React.Component {
 
     let eyeColors = ["#71C3DB", "#86DB68", "#876C1D", "#4F2D11"];
     let eyeColorPicker = getRandomInt(0, eyeColors.length - 1);
-    console.log(eyeColorPicker);
     // Pupils
     let rightIris = Bodies.circle(
       rightEye.position.x,
@@ -319,11 +329,8 @@ class Scene extends React.Component {
     Matter.Events.on(mouseConstraint, "mousedown", function (event) {
       //const rand = Math.random();
 
-      console.log(toolState.mousePressed);
       if (!toolState.mousePressed) {
         setToolState("mouseStartPosition", mouse.mousedownPosition);
-        //console.log('mousedown event');
-        //console.log(toolState.mouseStartPosition);
         toolState.mouseDisplacement = 0;
       }
 
@@ -339,21 +346,18 @@ class Scene extends React.Component {
       // for buttons
       switch (toolState.selectedBody) {
         case transformButton:
-          console.log("transform pressed at: " + event.mouse.position);
           selectDeselectButton(transformButton, [scaleButton, rotateButton]);
           toolState.currentTool = "transform";
           strokeColor = buttonStrokeColors.transform;
           break;
 
         case rotateButton:
-          console.log("rotate pressed at: " + event.mouse.position);
           selectDeselectButton(rotateButton, [transformButton, scaleButton]);
           toolState.currentTool = "rotate";
           strokeColor = buttonStrokeColors.rotate;
           break;
 
         case scaleButton:
-          console.log("scale pressed at: " + event.mouse.position);
           selectDeselectButton(scaleButton, [transformButton, rotateButton]);
           toolState.currentTool = "scale";
           strokeColor = buttonStrokeColors.scale;
@@ -364,7 +368,14 @@ class Scene extends React.Component {
             isStatic: true,
             render: { fillStyle: "#E3FF78" },
           });
-          World.add(engine.world, [fullHead, baseHat]);
+          setReactState("hatChosen", true);
+          World.add(engine.world, [
+            fullHead,
+            baseHat,
+            trashCan,
+            trashCanBoundaryLeft,
+            trashCanBoundaryRight,
+          ]);
           World.remove(engine.world, [
             baseHatButton1,
             baseHatButton2,
@@ -386,7 +397,14 @@ class Scene extends React.Component {
             isStatic: true,
           });
           baseHat = Body.create({ parts: [hatBody, hatTop], isStatic: true });
-          World.add(engine.world, [fullHead, baseHat]);
+          setReactState("hatChosen", true);
+          World.add(engine.world, [
+            fullHead,
+            baseHat,
+            trashCan,
+            trashCanBoundaryLeft,
+            trashCanBoundaryRight,
+          ]);
           World.remove(engine.world, [
             baseHatButton1,
             baseHatButton2,
@@ -442,7 +460,14 @@ class Scene extends React.Component {
             parts: [hatBottom, hatRightSide, hatLeftSide, hatMiddle],
             isStatic: true,
           });
-          World.add(engine.world, [fullHead, baseHat]);
+          setReactState("hatChosen", true);
+          World.add(engine.world, [
+            fullHead,
+            baseHat,
+            trashCan,
+            trashCanBoundaryLeft,
+            trashCanBoundaryRight,
+          ]);
           World.remove(engine.world, [
             baseHatButton1,
             baseHatButton2,
@@ -464,19 +489,21 @@ class Scene extends React.Component {
           break;
       }
 
-      /* Adding more objects by clicking
-      if (rand >= 0.5) {
+      if (Math.random() >= 0.5) {
         World.add(
           engine.world,
-          Bodies.circle(mouse.position.x, mouse.position.y, 30, { restitution: 0.7 })
+          Bodies.circle(mouse.position.x, mouse.position.y, 30, {
+            restitution: 0.7,
+          })
         );
       } else {
         World.add(
           engine.world,
-          Bodies.rectangle(mouse.position.x, mouse.position.y, 30, 15, { restitution: 0.7 })
+          Bodies.rectangle(mouse.position.x, mouse.position.y, 30, 15, {
+            restitution: 0.7,
+          })
         );
       }
-      */
     });
 
     Matter.Events.on(mouseConstraint, "mouseup", function (event) {
@@ -506,7 +533,6 @@ class Scene extends React.Component {
               mouseConstraint.body.isSensor === false &&
               mouseConstraint.body.isStatic === false
             ) {
-              //console.log('mousemove event');
               let XscaleFactor =
                 (Math.sign(toolState.mouseDisplacement.x) *
                   vectorLength(toolState.mouseDisplacement)) /
@@ -551,13 +577,15 @@ class Scene extends React.Component {
     return (
       <div style={{ diplay: "flex" }}>
         {this.renderChooseText()}
+        {this.renderAudioButton()}
         <div ref="scene" />
       </div>
     );
   }
 
   renderChooseText = () => {
-    return (
+    const { hatChosen } = this.state;
+    return !hatChosen ? (
       <h1
         style={{
           display: "flex",
@@ -570,6 +598,40 @@ class Scene extends React.Component {
       >
         CHOOSE STARTING HAT
       </h1>
+    ) : null;
+  };
+
+  renderAudioButton = () => {
+    const { audioPlaying } = this.state;
+    if (audioPlaying) {
+      document.getElementById("audio").play();
+    }
+    const start = () => {
+      this.setState({ audioPlaying: true });
+    };
+    const pause = () => {
+      document.getElementById("audio").pause();
+      this.setState({ audioPlaying: false });
+    };
+    const styles = {
+      display: "flex",
+      position: "absolute",
+      fontSize: "30pt",
+      top: "5vh",
+      left: "90vw",
+    };
+    return (
+      <div
+        style={
+          audioPlaying
+            ? { ...styles, color: "#020202" }
+            : { ...styles, color: "#767676" }
+        }
+      >
+        <SoundOutlined onClick={audioPlaying ? pause : start}>
+          Play
+        </SoundOutlined>
+      </div>
     );
   };
 }

@@ -19,23 +19,26 @@ class Landing extends Component {
   }
 
   renderLandingNav = () => {
-    const buttonStyle = { width: "200px", height: "100px", fontSize: "16pt" };
+    const buttonStyle = {
+      width: "250px",
+      height: "100px",
+      fontSize: "16pt",
+    };
     return (
       <div id="landing-nav">
-        <nav>
-          <ul>
-            <Row>
-              <Button style={buttonStyle} type="primary">
-                <Link to="/game">Play Hat Trick!</Link>
-              </Button>
-            </Row>
-            <Row>
-              <Button style={buttonStyle} type="secondary">
-                <Link to="/about">About</Link>
-              </Button>
-            </Row>
-          </ul>
-        </nav>
+        <Row>
+          <Button
+            style={{ ...buttonStyle, backgroundColor: "#621bc4" }}
+            type="primary"
+          >
+            <Link to="/game">Play Hat Trick!</Link>
+          </Button>
+        </Row>
+        <Row>
+          <Button style={buttonStyle} type="secondary">
+            <Link to="/about">About</Link>
+          </Button>
+        </Row>
       </div>
     );
   };

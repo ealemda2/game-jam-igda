@@ -1,9 +1,11 @@
 #landing-nav {
   position: absolute;
-  top: calc(50vh - 100px);
-  left: calc(50vw - 150px);
+  top: calc(50% - 200px);
+  left: calc(50% - 125px);
+  text-align: center;
 }
 
 .ant-row {
   margin: 5px 5px 5px 5px;
+  font-family: "Bungee Inline";
 }
